@@ -28,7 +28,8 @@ android {
             pip {
                 install "numpy"
                 install "pillow"
-                install "scipy==1.14.1"
+                // scipy: Chaquopy has no CPython 3.11 arm64 wheel, so XP ships
+                // a NumPy-backed scipy package in src/main/python/scipy instead.
             }
         }
     }
