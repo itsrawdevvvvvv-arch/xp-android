@@ -36,7 +36,7 @@ class XpState(val ctx: Context) {
     var audioPath by mutableStateOf<String?>(null)
 
     // settings
-    var previewQuality by mutableStateOf(1) // 0=540,1=720,2=1080
+    var previewQuality by mutableStateOf(1) // 0=540,1=720,2=1080 // 0=540,1=720,2=1080
     var hapticsOn by mutableStateOf(true)
     var loopOn by mutableStateOf(true)
     var showGuides by mutableStateOf(true)
@@ -50,6 +50,8 @@ class XpState(val ctx: Context) {
     init {
         engine.loop = true
         engine.targetFps = if (isLowRam) 24 else 30
+        // 2 GB / Android 9 devices start at 540p rather than fight the CPU
+        previewQuality = if (isLowRam) 0 else 1
         applyPreviewQuality()
     }
 

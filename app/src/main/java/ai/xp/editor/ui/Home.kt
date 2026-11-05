@@ -63,16 +63,19 @@ fun HomeScreen(state: XpState) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var scripts by remember { mutableStateOf<List<File>>(emptyList()) }
+    var bootError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        scripts = withContext(Dispatchers.IO) {
+        val result = withContext(Dispatchers.IO) {
             try {
                 XpPython.ensureInit(ctx)
-                XpPython.scripts()
+                Pair(XpPython.scripts(), null)
             } catch (t: Throwable) {
-                emptyList()
+                Pair(emptyList(), t.message ?: t.javaClass.simpleName)
             }
         }
+        scripts = result.first
+        bootError = result.second
     }
 
     fun open(f: File) {
@@ -157,9 +160,20 @@ fun HomeScreen(state: XpState) {
             if (scripts.isEmpty()) {
                 XpPanel(Modifier.fillMaxWidth(), color = Xp.paper, radius = 18.dp, shadow = 3.dp) {
                     Column(Modifier.padding(18.dp)) {
-                        Body("Preparing the Python runtime…", size = 13)
-                        Spacer(Modifier.height(6.dp))
-                        Accent("first launch copies fonts and samples", size = 12)
+                        if (bootError != null) {
+                            XpText("Python runtime failed to start", size = 13, weight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(6.dp))
+                            XpText(bootError!!.take(300), size = 11, color = Xp.danger)
+                            Spacer(Modifier.height(10.dp))
+                            MintPill("Retry", onClick = {
+                                bootError = null
+                                state.screen = Screen.Import
+                            })
+                        } else {
+                            Body("Preparing the Python runtime…", size = 13)
+                            Spacer(Modifier.height(6.dp))
+                            Accent("first launch copies fonts and samples", size = 12)
+                        }
                     }
                 }
             } else {
