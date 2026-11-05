@@ -86,7 +86,7 @@ fun HomeScreen(state: XpState) {
     }
 
     Box(Modifier.fillMaxSize()) {
-        StarField(Modifier.fillMaxSize(), count = 22, color = Xp.mintDeep, alpha = 0.45)
+        StarField(Modifier.fillMaxSize(), count = 22, color = Xp.mintDeep, alpha = 0.45f)
 
         Column(
             Modifier
