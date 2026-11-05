@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace 'ai.xp.editor'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "ai.xp.editor"

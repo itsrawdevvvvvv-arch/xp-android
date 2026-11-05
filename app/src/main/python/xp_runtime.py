@@ -252,6 +252,8 @@ def load_script(path):
         })
         patched = _patch_module(module)
         nodes, errors = _audit(duration, samples=min(96, int(duration * 8) + 2))
+        if not nodes and errors:
+            raise RuntimeError("the script drew nothing: " + errors[0])
         return json.dumps({
             "ok": True, "name": STATE["name"], "path": path,
             "duration": duration, "fps": STATE["fps"],
