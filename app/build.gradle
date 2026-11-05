@@ -28,7 +28,7 @@ android {
             pip {
                 install "numpy"
                 install "pillow"
-                install "scipy"
+                install "scipy==1.14.1"
             }
         }
     }
