@@ -1,0 +1,79 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python 3.11 (Chaquopy buildPython)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle 8.9
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.9'
+          cache-read-only: false
+
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Throwaway signing key
+        run: |
+          set -euo pipefail
+          PASS=$(openssl rand -hex 16)
+          keytool -genkeypair -keystore "$RUNNER_TEMP/xp.keystore" -alias xp \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$PASS" -keypass "$PASS" \
+            -dname "CN=XP Editor, O=XP, C=IN"
+          echo "XP_KEYSTORE_FILE=$RUNNER_TEMP/xp.keystore" >> "$GITHUB_ENV"
+          echo "XP_KEYSTORE_PASS=$PASS" >> "$GITHUB_ENV"
+          echo "XP_KEY_ALIAS=xp" >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Collect APK
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/XP-1.0.0.apk
+          ls -lh dist/
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --print-certs dist/XP-1.0.0.apk || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: XP-apk
+          path: dist/XP-1.0.0.apk
+          if-no-files-found: error
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: XP build ${{ github.run_number }}
+          body: |
+            XP — Android video editor. Kotlin + Compose + Chaquopy (Python 3.11).
+
+            **Install:** download `XP-1.0.0.apk` below and sideload it (Android 9+ / arm64).
+          files: dist/XP-1.0.0.apk

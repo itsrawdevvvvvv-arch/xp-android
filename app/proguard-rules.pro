@@ -1,0 +1,3 @@
+-keep class com.chaquo.python.** { *; }
+-keep class ai.xp.editor.** { *; }
+-dontwarn org.slf4j.**

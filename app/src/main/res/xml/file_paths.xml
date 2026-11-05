@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <files-path name="xp_files" path="." />
+    <cache-path name="xp_cache" path="." />
+    <external-path name="xp_ext" path="." />
+</paths>
